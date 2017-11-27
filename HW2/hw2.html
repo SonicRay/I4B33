@@ -23,7 +23,7 @@
 
 
     <script>
-       var keyboard = new KeyboardState();
+var keyboard = new KeyboardState();
 var renderer, camera, controls, scene, axes;
 var stopped = true;
 var theta1 = -0;
@@ -34,7 +34,7 @@ var model_turret;
 var model_turn;
 var model_connon;
 var pos, vel, force;
-var ball,light;
+var ball,light,target;
 var sign = false;
 var gridXZ;
 
@@ -43,44 +43,10 @@ var gridXZ;
 
         function buildParts() {
             var parts = [];
-					var materialArray = [
-    new THREE.MeshBasicMaterial({ // +x
-      color: 0x33CC00,
-      
-    }),
-    new THREE.MeshBasicMaterial({ // -x
-      color: 0x009933,
-      
-    }),
-    new THREE.MeshBasicMaterial({ // +y
-      color: 0x009933,
-      
+	
 
-    }),
-    new THREE.MeshBasicMaterial({ // -Y
-      color: 0x009933,
-      wireframe: true,
-      visible: false
-    }),
-    new THREE.MeshBasicMaterial({ // +z
-      color: 0x009933,
-      
-
-    }),
-    new THREE.MeshBasicMaterial({ // -Z
-      color: 0x33CC00,
-      
-    })
-  ];
-  var light = new THREE.SpotLight( 0xffffff, 3 );
-
-        			light.position.set( 100, 200, 50 );
-							light.castShadow = true;        
-							light.shadowCameraNear = 50;
-							light.shadowCameraFar = 300;
-							light.shadowCameraFov = 30;
-						scene.add( light );
-            var mat = new THREE.MultiMaterial(materialArray);
+						
+var mat = new THREE.MeshPhongMaterial({ color: 0x0080ff });
             
             var base = new THREE.Object3D();
             var baseMesh = new THREE.Mesh(new THREE.BoxGeometry(40, 10, 20), mat);
@@ -143,10 +109,14 @@ var gridXZ;
             renderer = new THREE.WebGLRenderer({
                 antialias: true
             });
-            renderer.setSize(window.innerWidth, window.innerHeight);
+						renderer.setPixelRatio(window.devicePixelRatio);
+		   			renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setClearColor(0x888888);
 
             document.body.appendChild(renderer.domElement);
+						renderer.shadowMap.enabled = true;
+            renderer.gammaInput = true;//光澤
+            renderer.gammaOutput = true;
 
             camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
             camera.position.set(0, 300, 40);
@@ -155,12 +125,42 @@ var gridXZ;
             controls = new THREE.OrbitControls(camera, renderer.domElement);
 
             scene = new THREE.Scene();
+			camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
+            camera.position.set(0, 300, 40);
+            //camera.position.y = 300;  // important
+            camera.fov -= 1000;
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+            controls.minDistance = 20;
+            controls.maxDistance = 500;
+            controls.enablePan = false;
 
             gridXZ = new THREE.GridHelper(400, 20, 'red', 'white');
             scene.add(gridXZ);
 
+
+			      spotLight = new THREE.SpotLight(0xffffff, 1);
+            spotLight.position.set(30, 100, 60);
+
+            spotLight.angle = Math.PI / 4;
+            spotLight.penumbra = 0.05;
+            spotLight.decay = 2;
+            spotLight.distance = 200;
+
+            spotLight.castShadow = true;
+            spotLight.shadow.mapSize.width = 1024;
+            spotLight.shadow.mapSize.height = 1024;
+            spotLight.shadow.camera.near = 10;
+            spotLight.shadow.camera.far = 200;
+			
+						scene.add(spotLight);
+
+            spotLightShadowHelper = new THREE.CameraHelper(spotLight.shadow.camera);
+            spotLightHelper = new THREE.SpotLightHelper(spotLight);
+ 
             model = buildTank();
             scene.add(model);
+            model.receiveShadow = true;
 
             var geometry = new THREE.SphereGeometry(1.52, 20, 20);
             ball = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
@@ -174,8 +174,8 @@ var gridXZ;
             pos.set(model.position.x + 10, model_turret.position.y, model_turret.position.z);
             scene.add(ball);
             //10*Math.cos(90*model_turret.rotation.y)
-
-        }
+		 }
+	
         function start() {
             stopped = false;
 
@@ -207,6 +207,8 @@ var gridXZ;
         function animate() {
             controls.update();
             renderer.render(scene, camera);
+						spotLightHelper.update();
+            spotLightShadowHelper.update();
             /*  var model_base;
                 var model_turret;
                 var model_turn;
@@ -253,6 +255,7 @@ var gridXZ;
                 pos.x = model.position.x;
                 
             }
+		
             ball.position.copy(pos);
             if (stopped) {
                 keyboard.update();
@@ -264,7 +267,6 @@ var gridXZ;
             requestAnimationFrame(animate);
 
         }
-
     </script>
 </body>
 
