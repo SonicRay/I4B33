@@ -9,7 +9,7 @@
 <body>
    <div style="position:absolute;top:20px;width:100%;text-align:center">
         
-        <button id='mybutton'>Start</button>
+       
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/84/three.min.js">
@@ -34,10 +34,10 @@ var model_turret;
 var model_turn;
 var model_connon;
 var pos, vel, force;
-var ball,light,target;
+var ball,light,sign=false,target;
 var sign = false;
 var gridXZ;
-
+var Vision = new THREE.Vector3();
         init();
         animate();
 
@@ -55,8 +55,7 @@ var mat = new THREE.MeshPhongMaterial({ color: 0x0080ff });
             parts.push(base);
 
             var turret = new THREE.Mesh(new THREE.CylinderGeometry(10, 10, 10, 30), mat);
-          
-            parts.push(turret);
+          	parts.push(turret);
 
             var turn = new THREE.Object3D();
             var turnMesh = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 10, 30), mat);
@@ -84,7 +83,6 @@ var mat = new THREE.MeshPhongMaterial({ color: 0x0080ff });
 						
            
             model_base = parts[0]
-            
             tank.add(model_base);
 
             model_turret = parts[1]
@@ -103,7 +101,26 @@ var mat = new THREE.MeshPhongMaterial({ color: 0x0080ff });
 
             return tank;
         }
+				function buildTarget() {
+            var aou = new THREE.Object3D();
+            var target_geometry = new THREE.RingGeometry(1, 10, 32);
+            var target_material = new THREE.MeshBasicMaterial({
+                color: 0xFFFF00,
+                side: THREE.DoubleSide
+            });
+            var mesh = new THREE.Mesh(target_geometry, target_material);
 
+            var geometry_Associate = new THREE.RingGeometry(0.5, 3, 32);
+
+            var material_Associate = new THREE.MeshBasicMaterial({
+                color: 0xFF0000,
+                side: THREE.DoubleSide
+            });
+            var backgroung = new THREE.Mesh(geometry_Associate, material_Associate);
+            aou.add(mesh);
+            aou.add(backgroung);
+            return aou;
+        }
         function init() {
 
             renderer = new THREE.WebGLRenderer({
@@ -128,7 +145,7 @@ var mat = new THREE.MeshPhongMaterial({ color: 0x0080ff });
 			camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
             camera.position.set(0, 300, 40);
             //camera.position.y = 300;  // important
-            camera.fov -= 1000;
+            
             controls = new THREE.OrbitControls(camera, renderer.domElement);
 
             controls.minDistance = 20;
@@ -161,6 +178,7 @@ var mat = new THREE.MeshPhongMaterial({ color: 0x0080ff });
             model = buildTank();
             scene.add(model);
             model.receiveShadow = true;
+            Vision.set(model.position.x, model.position.y, model.position.z);
 
             var geometry = new THREE.SphereGeometry(1.52, 20, 20);
             ball = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
@@ -173,6 +191,12 @@ var mat = new THREE.MeshPhongMaterial({ color: 0x0080ff });
             force = new THREE.Vector3(0, -10, 0);//承受力量方向
             pos.set(model.position.x + 10, model_turret.position.y, model_turret.position.z);
             scene.add(ball);
+            
+            target = buildTarget();
+            target.rotation.y = Math.PI / 2;
+            target.position.y = 10;
+            target.visible = false;
+            scene.add(target);
             //10*Math.cos(90*model_turret.rotation.y)
 		 }
 	
@@ -209,6 +233,18 @@ var mat = new THREE.MeshPhongMaterial({ color: 0x0080ff });
             renderer.render(scene, camera);
 						spotLightHelper.update();
             spotLightShadowHelper.update();
+            if (sign) {
+                if (model.rotation.y == 0) {
+                    Vision.set(model.position.x + 20 * Math.cos(model_turret.rotation.y), model_turret.position.y + 10 * Math.sin(model_turn.rotation.z), -20 * Math.sin(model_turret.rotation.y));
+
+                }
+                else {
+                    Vision.set(model.position.x - 20 * Math.cos(model_turret.rotation.y), model_turret.position.y + 10 * Math.sin(model_turn.rotation.z), 20 * Math.sin(model_turret.rotation.y));
+
+                }
+                camera.lookAt(Vision);
+            }
+            camera.lookAt(Vision)
             /*  var model_base;
                 var model_turret;
                 var model_turn;
@@ -255,7 +291,36 @@ var mat = new THREE.MeshPhongMaterial({ color: 0x0080ff });
                 pos.x = model.position.x;
                 
             }
-		
+            if (keyboard.down('X')) {
+                keyboard.update();
+                target.visible = true;
+                if (Math.random() > 0.5) {
+                    target.position.x = 100;
+                }
+                else {
+                    target.position.x = -100;
+                }
+            }
+						if (keyboard.down('ctrl')) {
+                keyboard.update();
+                if (sign) {
+                    sign = false;
+                    Vision.set(0, 0, 0);
+                    camera.lookAt(Vision);
+                    camera.position.set(0, 250, 40);
+                }
+                else {
+                    if (model.rotation.y == 0) {
+                        camera.position.set(model.position.x - 5 * Math.cos(model_turret.rotation.y), model_turret.position.y + 10 * Math.sin(model_turn.rotation.z), +20 * Math.sin(model_turret.rotation.y));
+                    }
+                    else {
+                        camera.position.set(model.position.x + 5 * Math.cos(model_turret.rotation.y), model_turret.position.y + 10 * Math.sin(model_turn.rotation.z), -20 * Math.sin(model_turret.rotation.y));
+
+                    }
+                    sign = true;
+                }
+
+            }
             ball.position.copy(pos);
             if (stopped) {
                 keyboard.update();
