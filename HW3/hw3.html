@@ -185,14 +185,14 @@
             var texture = new THREE.Texture();
             var mtlLoader = new THREE.MTLLoader();
             
-            mtlLoader.load('https://sonicray.github.io/I4B33/HW3/Lighthouse singly.mtl', function (materials) {
+            mtlLoader.load('https://sonicray.github.io/I4B33/HW3/effel-tower.mtl', function (materials) {
 
                 materials.preload();
 
                 var objLoader = new THREE.OBJLoader();
                 objLoader.setMaterials(materials);
                 
-                objLoader.load('https://sonicray.github.io/I4B33/HW3/Lighthouse singly.obj', function (object) {
+                objLoader.load('https://sonicray.github.io/I4B33/HW3/effel-tower.obj', function (object) {
 
                     var theObject = unitize(object, 100);
                     Tower = theObject;
@@ -220,7 +220,7 @@
         function buildGround() {
             var textureLoader = new THREE.TextureLoader();
 
-            var texture = textureLoader.load('https://sonicray.github.io/I4B33/HW3/roadSurface_Color.jpg', function (texture) {
+            var texture = textureLoader.load('https://sonicray.github.io/I4B33/HW3/highwaySurface_Color.png', function (texture) {
 
                 texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
                 texture.offset.set(0, 0);
@@ -306,7 +306,9 @@
             renderer.setScissor(k, k, WW - 2 * k, HH - 2 * k);
             renderer.enableScissorTest(true);
 
-          
+            renderer.clear();
+            camera.aspect = WW / 2 / HH;
+            camera.updateProjectionMatrix();
 
             renderer.setViewport(0, 0, WW / 2, HH);
             renderer.render(scene, camera);
@@ -316,10 +318,6 @@
 
             renderer.setViewport(WW / 2, 0, WW / 2, HH);
             renderer.render(scene, camera2);
-			
-			renderer.clear();
-            camera.aspect = WW / 2 / HH;
-            camera.updateProjectionMatrix();
         }
 
     
