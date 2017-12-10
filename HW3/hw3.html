@@ -187,14 +187,14 @@
             var texture = new THREE.Texture();
             var mtlLoader = new THREE.MTLLoader();
        
-            mtlLoader.load('https://sonicray.github.io/I4B33/HW3/materials.mtl', function (materials) {
+            mtlLoader.load('https://sonicray.github.io/I4B33/HW3/strts.mtl', function (materials) {
 
                 materials.preload();
 
                 var objLoader = new THREE.OBJLoader();
                 objLoader.setMaterials(materials);
                
-                objLoader.load('https://sonicray.github.io/I4B33/HW3/model.obj', function (object) {
+                objLoader.load('https://sonicray.github.io/I4B33/HW3/strts.obj', function (object) {
 
                     var theObject = unitize(object, 40);
                     theObject.position.set(0, 0, 0);
@@ -224,7 +224,7 @@
         function buildGround() {
             var textureLoader = new THREE.TextureLoader();
 
-            var texture = textureLoader.load('./stoneroad.jpg', function (texture) {
+            var texture = textureLoader.load('https://sonicray.github.io/I4B33/HW3/roadSurface_Color.jpg', function (texture) {
 
                 texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
                 texture.offset.set(0, 0);
