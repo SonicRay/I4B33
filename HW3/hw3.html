@@ -155,7 +155,7 @@
                     theObject.rotation.y = rotateAngle;
                     theObject.traverse(function (mesh) {
                         if (mesh instanceof THREE.Mesh) {
-                            mesh.material.bumpScale = 0.2;
+                            mesh.material.bumpScale = 5;
                         }
                     });
 
@@ -187,14 +187,14 @@
             var texture = new THREE.Texture();
             var mtlLoader = new THREE.MTLLoader();
        
-            mtlLoader.load('https://sonicray.github.io/I4B33/HW3/strts.mtl', function (materials) {
+            mtlLoader.load('https://sonicray.github.io/I4B33/HW3/Lighthouse singly.mtl', function (materials) {
 
                 materials.preload();
 
                 var objLoader = new THREE.OBJLoader();
                 objLoader.setMaterials(materials);
                
-                objLoader.load('https://sonicray.github.io/I4B33/HW3/strts.obj', function (object) {
+                objLoader.load('https://sonicray.github.io/I4B33/HW3/Lighthouse singly.obj', function (object) {
 
                     var theObject = unitize(object, 40);
                     theObject.position.set(0, 0, 0);
@@ -204,7 +204,7 @@
 
                     theObject.traverse(function (mesh) {
                         if (mesh instanceof THREE.Mesh) {
-                            mesh.material.bumpScale = 0.2;
+                            mesh.material.bumpScale = 5;
                         }
                     });
 
