@@ -144,15 +144,15 @@
 
             var texture = new THREE.Texture();
             var mtlLoader = new THREE.MTLLoader();
-       
-            mtlLoader.load('https://sonicray.github.io/I4B33/HW3/lamborghini-aventador-irridescent-paint.mtl', function (materials) {
+			mtlLoader.setPath('./lamborghini-aventador-irridescent-paint-obj/');
+            mtlLoader.load('lamborghini-aventador-irridescent-paint.mtl', function (materials) {
 
                 materials.preload();
 
                 var objLoader = new THREE.OBJLoader();
                 objLoader.setMaterials(materials);
-               
-                objLoader.load('https://sonicray.github.io/I4B33/HW3/lamborghini-aventador-irridescent-paint.obj', function (object) {
+                objLoader.setPath('./lamborghini-aventador-irridescent-paint-obj/');
+                objLoader.load('lamborghini-aventador-irridescent-paint.obj', function (object) {
 
                     var theObject = unitize(object, 40);
                     theObject.position.set(0, 0, 0);
@@ -180,15 +180,15 @@
            
             var texture = new THREE.Texture();
             var mtlLoader = new THREE.MTLLoader();
-            
-            mtlLoader.load('https://sonicray.github.io/I4B33/HW3/effel-tower.mtl', function (materials) {
+            mtlLoader.setPath('tower/');
+            mtlLoader.load('tower.mtl', function (materials) {
 
                 materials.preload();
 
                 var objLoader = new THREE.OBJLoader();
                 objLoader.setMaterials(materials);
-                
-                objLoader.load('https://sonicray.github.io/I4B33/HW3/effel-tower.obj', function (object) {
+                objLoader.setPath('tower/');
+                objLoader.load('tower.obj', function (object) {
 
                     var theObject = unitize(object, 100);
                     Tower = theObject;
@@ -248,7 +248,7 @@
 		function buildGround() {
             var textureLoader = new THREE.TextureLoader();
 
-            var texture = textureLoader.load('./Color.jpg', function (texture) {
+            var texture = textureLoader.load('./road.jpg', function (texture) {
 
                 texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
                 texture.offset.set(0, 0);
