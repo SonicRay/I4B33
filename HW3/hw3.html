@@ -7,6 +7,10 @@
 </head>
 
 <body>
+   <div style="position:absolute;top:20px;width:100%;text-align:center">
+        
+       
+    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/84/three.min.js">
     </script>
@@ -16,306 +20,318 @@
     <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
     <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
     <script src="https://jyunming-chen.github.io/tutsplus/js/KeyboardState.js"></script>
-    <script src="./MTLLoader.js"></script>
-    <script src="./OBJLoader.js"></script>
+
 
     <script>
-      
-
-        var camera, camera2, scene, renderer, geometry, material, mesh, light, controls, controls2;
-        var k = 0, sign = 1;
-
-        var keyboard = new KeyboardState();
-        var clock;
-		var car;
-        var Tower;
-        var pos = new THREE.Vector3();
-        var speed, angle, vel;
-
-        (function () {
-            Math.clamp = function (val, min, max) {
-                return Math.min(Math.max(val, min), max);
-            }
-        })();
-
-
+var keyboard = new KeyboardState();
+var renderer, camera, controls, scene, axes;
+var stopped = true;
+var theta1 = -0;
+var theta2 = 0;
+var model;
+var model_base;
+var model_turret;
+var model_turn;
+var model_connon;
+var pos, vel, force;
+var ball,light,sign=false,target;
+var sign = false;
+var gridXZ;
+var Vision = new THREE.Vector3();
         init();
         animate();
 
+        function buildParts() {
+            var parts = [];
+	
+
+						
+var mat = new THREE.MeshPhongMaterial({ color: 0x0080ff });
+            
+            var base = new THREE.Object3D();
+            var baseMesh = new THREE.Mesh(new THREE.BoxGeometry(40, 10, 20), mat);
+            base.add(baseMesh);
+            baseMesh.position.set(-10, 5, 0);
+            parts.push(base);
+
+            var turret = new THREE.Mesh(new THREE.CylinderGeometry(10, 10, 10, 30), mat);
+          	parts.push(turret);
+
+            var turn = new THREE.Object3D();
+            var turnMesh = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 10, 30), mat);
+            turn.add(turnMesh);
+            turnMesh.rotation.x = Math.PI / 2;
+            parts.push(turn);
+
+            var cannon = new THREE.Object3D()
+            var cannon0 = new THREE.Object3D()
+            var cannonMesh = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 10, 30), mat);
+            cannon0.add(cannonMesh);
+            cannonMesh.position.y = 5;
+            cannon.add(cannon0);
+            cannon0.rotation.z = -Math.PI / 2;
+            parts.push(cannon);
+
+            return parts;
+        }
+
+        function buildTank() {
+
+            let parts = buildParts();
+
+            let tank = new THREE.Object3D();
+						
+           
+            model_base = parts[0]
+            tank.add(model_base);
+
+            model_turret = parts[1]
+            tank.add(model_turret)
+            model_turret.position.set(0, 15, 0);
+            console.log(theta1);
+            model_turret.rotation.y = theta1;
+
+            model_turn = parts[2]
+            model_turn.position.x = 10
+            model_turn.rotation.z = theta2;
+            model_turret.add(model_turn);
+
+            model_cannon = parts[3]
+            model_turn.add(model_cannon);
+
+            return tank;
+        }
+				function buildTarget() {
+            var aou = new THREE.Object3D();
+            var target_geometry = new THREE.RingGeometry(1, 10, 32);
+            var target_material = new THREE.MeshBasicMaterial({
+                color: 0xFFFF00,
+                side: THREE.DoubleSide
+            });
+            var mesh = new THREE.Mesh(target_geometry, target_material);
+
+            var geometry_Associate = new THREE.RingGeometry(0.5, 3, 32);
+
+            var material_Associate = new THREE.MeshBasicMaterial({
+                color: 0xFF0000,
+                side: THREE.DoubleSide
+            });
+            var backgroung = new THREE.Mesh(geometry_Associate, material_Associate);
+            aou.add(mesh);
+            aou.add(backgroung);
+            return aou;
+        }
         function init() {
-            clock = new THREE.Clock();
-            scene = new THREE.Scene();
 
-            camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
-            camera2 = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
-
-            camera2.position.x = 300;
-            camera2.position.y = 400;
-            camera2.position.z = 200;
-
-
-            camera.position.x = 180;
-            camera.position.y = 70;
-            camera.position.z = 0;
-
-            scene.add(camera);
-            scene.add(camera2);
-
-            var ground = buildGround();
-
-            scene.add(ground);
-
-            buildTower(-100, 0, 0, Math.PI / 2);
-            // buildTower(-100, 0, -50, Math.PI / 2);
-            // buildTower(-160, 0, 50, Math.PI / 2);
-            // buildTower(-160, 0, -50, Math.PI / 2);
-          
-            buildCar();
-
-            var ambient = new THREE.AmbientLight(0x444444);
-            scene.add(ambient);
-
-            var directionalLight = new THREE.DirectionalLight(0xffffff);
-            directionalLight.position.set(1, 1, 1).normalize();
-            scene.add(directionalLight);
-
-            renderer = new THREE.WebGLRenderer();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer = new THREE.WebGLRenderer({
+                antialias: true
+            });
+						renderer.setPixelRatio(window.devicePixelRatio);
+		   			renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setClearColor(0x888888);
-            renderer.autoClear = false;
-
-            speed = 0.0;
-            angle = 0.0;
-
-            controls = new THREE.OrbitControls(camera, renderer.domElement);
-            controls2 = new THREE.OrbitControls(camera2, renderer.domElement);
-            controls2.enableKeys = false
-            window.addEventListener('resize', onWindowResize, false);
 
             document.body.appendChild(renderer.domElement);
-        }
-        function unitize(object, targetSize) {
+						renderer.shadowMap.enabled = true;
+            renderer.gammaInput = true;//光澤
+            renderer.gammaOutput = true;
 
-            // find bounding box of 'object'
-            var box3 = new THREE.Box3();
-            box3.setFromObject(object);
-            var size = new THREE.Vector3();
-            size.subVectors(box3.max, box3.min);
-            var center = new THREE.Vector3();
-            center.addVectors(box3.max, box3.min).multiplyScalar(0.5);
+            camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
+            camera.position.set(0, 300, 40);
+            //camera.position.y = 300;  // important
 
-            console.log('center: ' + center.x + ', ' + center.y + ', ' + center.z);
-            console.log('size: ' + size.x + ', ' + size.y + ', ' + size.z);
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
 
-            // uniform scaling according to objSize
-            var objSize = findMax(size);
-            var scaleSet = targetSize / objSize;
+            scene = new THREE.Scene();
+			camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
+            camera.position.set(0, 300, 40);
+            //camera.position.y = 300;  // important
+            
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
 
-            var theObject = new THREE.Object3D();
-            theObject.add(object);
-            object.scale.set(scaleSet, scaleSet, scaleSet);
-            object.position.set(-center.x * scaleSet, -center.y * scaleSet + size.y / 2 * scaleSet, -center.z * scaleSet);
+            controls.minDistance = 20;
+            controls.maxDistance = 500;
+            controls.enablePan = false;
 
-            return theObject;
+            gridXZ = new THREE.GridHelper(400, 20, 'red', 'white');
+            scene.add(gridXZ);
 
-            // helper function
-            function findMax(v) {
-                if (v.x > v.y) {
-                    return v.x > v.z ? v.x : v.z;
-                } else { // v.y > v.x
-                    return v.y > v.z ? v.y : v.z;
-                }
-            }
 
-        }
-      
-   
-        function buildCar() {
-            // THREE.Loader.Handlers.add(/\.dds$/i, new THREE.DDSLoader());
+			      spotLight = new THREE.SpotLight(0xffffff, 1);
+            spotLight.position.set(30, 100, 60);
 
-            var onProgress = function (xhr) {
-                if (xhr.lengthComputable) {
-                    var percentComplete = xhr.loaded / xhr.total * 100;
-                    console.log(Math.round(percentComplete, 2) + '% downloaded');
-                }
-            };
+            spotLight.angle = Math.PI / 4;
+            spotLight.penumbra = 0.05;
+            spotLight.decay = 2;
+            spotLight.distance = 200;
 
-            var onError = function (xhr) { };
-
-            var texture = new THREE.Texture();
-            var mtlLoader = new THREE.MTLLoader();
+            spotLight.castShadow = true;
+            spotLight.shadow.mapSize.width = 1024;
+            spotLight.shadow.mapSize.height = 1024;
+            spotLight.shadow.camera.near = 10;
+            spotLight.shadow.camera.far = 200;
 			
-            mtlLoader.load('https://sonicray.github.io/I4B33/HW3/lamborghini-aventador-irridescent-paint.mtl', function (materials) {
+						scene.add(spotLight);
 
-                materials.preload();
+            spotLightShadowHelper = new THREE.CameraHelper(spotLight.shadow.camera);
+            spotLightHelper = new THREE.SpotLightHelper(spotLight);
+ 
+            model = buildTank();
+            scene.add(model);
+            model.receiveShadow = true;
+            Vision.set(model.position.x, model.position.y, model.position.z);
 
-                var objLoader = new THREE.OBJLoader();
-                objLoader.setMaterials(materials);
-                
-                objLoader.load('https://sonicray.github.io/I4B33/HW3/lamborghini-aventador-irridescent-paint.obj', function (object) {
+            var geometry = new THREE.SphereGeometry(1.52, 20, 20);
+            ball = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
+            color:0x000000
+            }));
 
-                    var theObject = unitize(object, 40);
-                    theObject.position.set(0, 0, 0);
-                    scene.add(theObject);
 
-                    car = theObject;
-
-                    theObject.traverse(function (mesh) {
-                        if (mesh instanceof THREE.Mesh) {
-                            mesh.material.bumpScale = 20;
-                        }
-                    });
-
-                    scene.add(new THREE.BoxHelper(theObject));
-                    object.traverse(
-                        function (mesh) {
-                            if (mesh instanceof THREE.Mesh) {
-                                mesh.material.side = THREE.DoubleSide;
-                            }
-                        });
-                });
-            }, onProgress, onError);
-        }
-		     function buildTower(x, y, z, rotateAngle) {
-           
-            var texture = new THREE.Texture();
-            var mtlLoader = new THREE.MTLLoader();
+            pos = new THREE.Vector3();//結束位子
+            vel = new THREE.Vector3();//發射位子
+            force = new THREE.Vector3(0, -10, 0);//承受力量方向
+            pos.set(model.position.x + 10, model_turret.position.y, model_turret.position.z);
+            scene.add(ball);
             
-            mtlLoader.load('https://sonicray.github.io/I4B33/HW3/tower.mtl', function (materials) {
+            target = buildTarget();
+            target.rotation.y = Math.PI / 2;
+            target.position.y = 10;
+            target.visible = false;
+            scene.add(target);
+            //10*Math.cos(90*model_turret.rotation.y)
+		 }
+	
+        function start() {
+            stopped = false;
 
-                materials.preload();
+            if (model.rotation.y == 0) {
+                pos.set(model.position.x + 20 * Math.cos(model_turret.rotation.y), model_turret.position.y + 10 * Math.sin(model_turn.rotation.z), -20 * Math.sin(model_turret.rotation.y));
+                vel.set(1, Math.tan(model_turn.rotation.z), -Math.tan(model_turret.rotation.y)).normalize().multiplyScalar(35);
+            }
+            else {
+                pos.set(model.position.x - 20 * Math.cos(model_turret.rotation.y), model_turret.position.y + 10 * Math.sin(model_turn.rotation.z), 20 * Math.sin(model_turret.rotation.y));
+                //Math.cos(90*model_turn.rotation.z)
+                vel.set(-1, Math.tan(model_turn.rotation.z), Math.tan(model_turret.rotation.y)).normalize().multiplyScalar(35);
+            }
+            console.log("model_turret.rotation.y: " + model_turret.rotation.y);
+            console.log("sin: " + Math.sin(model_turret.rotation.y));
+            //pos.set (200*Math.random()-100, 0, 200*Math.random()-100);
 
-                var objLoader = new THREE.OBJLoader();
-                objLoader.setMaterials(materials);
-                
-                objLoader.load('https://sonicray.github.io/I4B33/HW3/tower.obj', function (object) {
-
-                    var theObject = unitize(object, 100);
-                    Tower = theObject;
-                    theObject.position.set(x, y, z);
-                    theObject.rotation.y = rotateAngle;
-                    theObject.traverse(function (mesh) {
-                        if (mesh instanceof THREE.Mesh) {
-                            mesh.material.bumpScale = 20;
-                        }
-                    });
-
-                    scene.add(new THREE.BoxHelper(theObject));
-                    scene.add(theObject);
-                   
-                    object.traverse(
-                        function (mesh) {
-                            if (mesh instanceof THREE.Mesh) {
-                                mesh.material.side = THREE.DoubleSide;
-                            }
-                        });
-                });
-            });
+            //.normalize().multiplyScalar(50);設多遠
         }
-		
-		function buildGround() {
-            var textureLoader = new THREE.TextureLoader();
 
-            var texture = textureLoader.load('https://sonicray.github.io/I4B33/HW3/Color.jpg', function (texture) {
-
-                texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-                texture.offset.set(0, 0);
-                texture.repeat.set(1000, 1000);
-            });
-
-
-            var geometry = new THREE.BoxGeometry(10000, 0.5, 10000);
-            var material = new THREE.MeshBasicMaterial({ map: texture });
-            var ground = new THREE.Mesh(geometry, material);
-
-            return ground;
-        }
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera2.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            camera2.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
         function update(dt) {
-            keyboard.update();
-            if (keyboard.pressed("A"))
-                if (speed >= 0)
-                    angle += 0.02;
-                else
-                    angle -= 0.02;
-            if (keyboard.pressed("D"))
-                if (speed >= 0)
-                    angle -= 0.02;
-                else
-                    angle += 0.02;
-            if (keyboard.pressed("W"))
-                speed += 1;
-            if (keyboard.pressed("S"))
-                speed -= 1;
+            vel.add(force.clone().multiplyScalar(dt));
+            pos.add(vel.clone().multiplyScalar(dt)); 
 
-            if (speed >= 100) {
-                speed = 100;
+            if (pos.y < 0) {
+                pos.set(model.position.x, model_turret.position.y, model_turret.position.z);
+                stopped = true;
             }
-            if (speed <= -100) {
-                speed = -100;
-            }
-            
-            vel = new THREE.Vector3(-speed, 0, 0);
-
-            vel.applyAxisAngle(new THREE.Vector3(0, 1, 0), angle);
-            pos.add(vel.clone().multiplyScalar(dt));
         }
-        var isCrash = false;
         function animate() {
             controls.update();
-            var dt = clock.getDelta();
-            update(dt);
-            if (car != undefined && Tower != undefined) {
-                car.position.copy(pos);
-                car.rotation.y = angle;
-                camera.rotation.y = angle;
-                camera.position.set(car.position.x + 70, 20, car.position.z);
-                camera.lookAt(car.position);
-                var distance = car.position.distanceTo(Tower.position);
-                if (distance < 25) {
-                    speed = 0;
-              
+            renderer.render(scene, camera);
+						spotLightHelper.update();
+            spotLightShadowHelper.update();
+            if (sign) {
+                if (model.rotation.y == 0) {
+                    Vision.set(model.position.x + 20 * Math.cos(model_turret.rotation.y), model_turret.position.y + 10 * Math.sin(model_turn.rotation.z), -20 * Math.sin(model_turret.rotation.y));
+
                 }
-          
-            
+                else {
+                    Vision.set(model.position.x - 20 * Math.cos(model_turret.rotation.y), model_turret.position.y + 10 * Math.sin(model_turn.rotation.z), 20 * Math.sin(model_turret.rotation.y));
+
+                }
+                camera.lookAt(Vision);
+            }
+            camera.lookAt(Vision)
+            /*  var model_base;
+                var model_turret;
+                var model_turn;
+                var model_connon;*/
+            renderer.render(scene, camera);
+
+            if (keyboard.pressed('A')) {
+                model_turret.rotation.y += 0.02;
+                if (model_turret.rotation.y > 1) {
+                    model_turret.rotation.y = 1;
+                }
+            }
+            else if (keyboard.pressed('D')) {
+                model_turret.rotation.y -= 0.02;
+                if (model_turret.rotation.y < -1) {
+                    model_turret.rotation.y = -1;
+                }
+            }
+            if (keyboard.pressed('S')) {
+                model_turn.rotation.z -= 0.02;
+                if (model_turn.rotation.z < -0.5) {
+                    model_turn.rotation.z = -0.5
+                }
+                console.log("123: " + model_turn.rotation.z);
+            }
+            else if (keyboard.pressed('W')) {
+                model_turn.rotation.z += 0.02;
+                if (model_turn.rotation.z > 0.9) {
+                    model_turn.rotation.z = 0.9
+                }
+                console.log("123: " + model_turn.rotation.z);
+            }
+            else if (keyboard.pressed('U')) {
+                keyboard.update();
+                model.rotation.y = Math.PI;
+                model.position.x -= 0.2;
+                pos.x = model.position.x;
+                
+            }
+            else if (keyboard.pressed('J')) {
+                keyboard.update();
+                model.rotation.y = 0;
+                model.position.x += 0.2;
+                pos.x = model.position.x;
+                
+            }
+            if (keyboard.down('X')) {
+                keyboard.update();
+                target.visible = true;
+                if (Math.random() > 0.5) {
+                    target.position.x = 100;
+                }
+                else {
+                    target.position.x = -100;
+                }
+            }
+						if (keyboard.down('ctrl')) {
+                keyboard.update();
+                if (sign) {
+                    sign = false;
+                    Vision.set(0, 0, 0);
+                    camera.lookAt(Vision);
+                    camera.position.set(0, 250, 40);
+                }
+                else {
+                    if (model.rotation.y == 0) {
+                        camera.position.set(model.position.x - 5 * Math.cos(model_turret.rotation.y), model_turret.position.y + 10 * Math.sin(model_turn.rotation.z), +20 * Math.sin(model_turret.rotation.y));
+                    }
+                    else {
+                        camera.position.set(model.position.x + 5 * Math.cos(model_turret.rotation.y), model_turret.position.y + 10 * Math.sin(model_turn.rotation.z), -20 * Math.sin(model_turret.rotation.y));
+
+                    }
+                    sign = true;
+                }
+
+            }
+            ball.position.copy(pos);
+            if (stopped) {
+                keyboard.update();
+                if (keyboard.down("space")) start();
+            } else {
+                update(0.1);
             }
 
             requestAnimationFrame(animate);
-            render();
+
         }
-       
-
-   
-        function render() {
-            var WW = window.innerWidth;
-            var HH = window.innerHeight;
-
-
-            renderer.setScissor(k, k, WW - 2 * k, HH - 2 * k);
-            renderer.enableScissorTest(true);
-
-            renderer.clear();
-            camera.aspect = WW / 2 / HH;
-            camera.updateProjectionMatrix();
-
-            renderer.setViewport(0, 0, WW / 2, HH);
-            renderer.render(scene, camera);
-
-            camera2.aspect = WW / 2 / HH;
-            camera2.updateProjectionMatrix();
-
-            renderer.setViewport(WW / 2, 0, WW / 2, HH);
-            renderer.render(scene, camera2);
-        }
-
-    
-
     </script>
 </body>
 
