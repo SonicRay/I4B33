@@ -29,7 +29,7 @@
         var clock;
 
         var car;
-        var caslteTower1;
+        var Tower;
         var pos = new THREE.Vector3();
         var speed, angle, vel;
 
@@ -66,16 +66,11 @@
 
             scene.add(ground);
 
-            buildCastleTower(-100, 0, 0, Math.PI / 2);
-            // buildCastleTower(-100, 0, -50, Math.PI / 2);
-            // buildCastleTower(-160, 0, 50, Math.PI / 2);
-            // buildCastleTower(-160, 0, -50, Math.PI / 2);
-            // buildFence(-150, 0, 21, Math.PI / 2);
-            // buildFence(-150, 0, -21, Math.PI / 2);
-
-            // buildFence(-130, 0, 50, 0);
-            // buildFence(-130, 0, -50, 0);
-
+            buildTower(-100, 0, 0, Math.PI / 2);
+            // buildTower(-100, 0, -50, Math.PI / 2);
+            // buildTower(-160, 0, 50, Math.PI / 2);
+            // buildTower(-160, 0, -50, Math.PI / 2);
+          
             buildCar();
 
             var ambient = new THREE.AmbientLight(0x444444);
@@ -135,43 +130,7 @@
 
         }
       
-        function buildCastleTower(x, y, z, rotateAngle) {
-            // THREE.Loader.Handlers.add(/\.dds$/i, new THREE.DDSLoader());
-            var texture = new THREE.Texture();
-            var mtlLoader = new THREE.MTLLoader();
-            
-            mtlLoader.load('https://sonicray.github.io/I4B33/HW3/Palace.mtl', function (materials) {
-
-                materials.preload();
-
-                var objLoader = new THREE.OBJLoader();
-                objLoader.setMaterials(materials);
-                
-                objLoader.load('https://sonicray.github.io/I4B33/HW3/Palace.obj', function (object) {
-
-                    var theObject = unitize(object, 100);
-                    caslteTower1 = theObject;
-                    theObject.position.set(x, y, z);
-                    theObject.rotation.y = rotateAngle;
-                    theObject.traverse(function (mesh) {
-                        if (mesh instanceof THREE.Mesh) {
-                            mesh.material.bumpScale = 5;
-                        }
-                    });
-
-                    scene.add(new THREE.BoxHelper(theObject));
-                    scene.add(theObject);
-                    //////// MATERIAL ADJUSTMENT for porsche ///////////////
-                    // transparent window: double-side fix
-                    object.traverse(
-                        function (mesh) {
-                            if (mesh instanceof THREE.Mesh) {
-                                mesh.material.side = THREE.DoubleSide;
-                            }
-                        });
-                });
-            });
-        }
+   
         function buildCar() {
             // THREE.Loader.Handlers.add(/\.dds$/i, new THREE.DDSLoader());
 
@@ -187,14 +146,14 @@
             var texture = new THREE.Texture();
             var mtlLoader = new THREE.MTLLoader();
        
-            mtlLoader.load('https://sonicray.github.io/I4B33/HW3/Lighthouse singly.mtl', function (materials) {
+            mtlLoader.load('https://sonicray.github.io/I4B33/HW3/strts.mtl', function (materials) {
 
                 materials.preload();
 
                 var objLoader = new THREE.OBJLoader();
                 objLoader.setMaterials(materials);
                
-                objLoader.load('https://sonicray.github.io/I4B33/HW3/Lighthouse singly.obj', function (object) {
+                objLoader.load('https://sonicray.github.io/I4B33/HW3/strts.obj', function (object) {
 
                     var theObject = unitize(object, 40);
                     theObject.position.set(0, 0, 0);
@@ -220,6 +179,43 @@
                         });
                 });
             }, onProgress, onError);
+        }
+		     function buildTower(x, y, z, rotateAngle) {
+            // THREE.Loader.Handlers.add(/\.dds$/i, new THREE.DDSLoader());
+            var texture = new THREE.Texture();
+            var mtlLoader = new THREE.MTLLoader();
+            
+            mtlLoader.load('https://sonicray.github.io/I4B33/HW3/Lighthouse singly.mtl', function (materials) {
+
+                materials.preload();
+
+                var objLoader = new THREE.OBJLoader();
+                objLoader.setMaterials(materials);
+                
+                objLoader.load('https://sonicray.github.io/I4B33/HW3/Lighthouse singly.obj', function (object) {
+
+                    var theObject = unitize(object, 100);
+                    Tower = theObject;
+                    theObject.position.set(x, y, z);
+                    theObject.rotation.y = rotateAngle;
+                    theObject.traverse(function (mesh) {
+                        if (mesh instanceof THREE.Mesh) {
+                            mesh.material.bumpScale = 5;
+                        }
+                    });
+
+                    scene.add(new THREE.BoxHelper(theObject));
+                    scene.add(theObject);
+                    //////// MATERIAL ADJUSTMENT for porsche ///////////////
+                    // transparent window: double-side fix
+                    object.traverse(
+                        function (mesh) {
+                            if (mesh instanceof THREE.Mesh) {
+                                mesh.material.side = THREE.DoubleSide;
+                            }
+                        });
+                });
+            });
         }
         function buildGround() {
             var textureLoader = new THREE.TextureLoader();
@@ -279,28 +275,19 @@
             controls.update();
             var dt = clock.getDelta();
             update(dt);
-            if (car != undefined && caslteTower1 != undefined) {
+            if (car != undefined && Tower != undefined) {
                 car.position.copy(pos);
                 car.rotation.y = angle;
                 camera.rotation.y = angle;
                 camera.position.set(car.position.x + 70, 20, car.position.z);
                 camera.lookAt(car.position);
-                var distance = car.position.distanceTo(caslteTower1.position);
+                var distance = car.position.distanceTo(Tower.position);
                 if (distance < 25) {
                     speed = 0;
-                    if (!isCrash) {
-                        var audio = new Audio('sound.mp3');
-                        audio.play();
-                        isCrash = true;
-                    }
+              
                 }
-                if (distance > 30) {
-                    isCrash =
-                        false;
-                }
-                if (speed < 1 && speed > -1) {
-                    engineSound.pause();
-                }
+          
+            
             }
 
             requestAnimationFrame(animate);
@@ -310,13 +297,7 @@
             return x < lo ? lo : (x > hi ? hi : x);
         }
 
-        engineSound = new Audio('engine.wav');
-        setInterval(playEngineSound, 4000);
-        function playEngineSound() {
-            if (speed > 1 || speed < -1) {
-                engineSound.play();
-            }
-        }
+   
         function render() {
             var WW = window.innerWidth;
             var HH = window.innerHeight;
@@ -325,9 +306,7 @@
             renderer.setScissor(k, k, WW - 2 * k, HH - 2 * k);
             renderer.enableScissorTest(true);
 
-            renderer.clear();
-            camera.aspect = WW / 2 / HH;
-            camera.updateProjectionMatrix();
+          
 
             renderer.setViewport(0, 0, WW / 2, HH);
             renderer.render(scene, camera);
@@ -337,6 +316,10 @@
 
             renderer.setViewport(WW / 2, 0, WW / 2, HH);
             renderer.render(scene, camera2);
+			
+			renderer.clear();
+            camera.aspect = WW / 2 / HH;
+            camera.updateProjectionMatrix();
         }
 
     
