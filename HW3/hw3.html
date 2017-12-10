@@ -27,8 +27,7 @@
 
         var keyboard = new KeyboardState();
         var clock;
-
-        var car;
+		var car;
         var Tower;
         var pos = new THREE.Vector3();
         var speed, angle, vel;
@@ -62,9 +61,7 @@
             scene.add(camera);
             scene.add(camera2);
 
-            var ground = buildGround();
-
-            scene.add(ground);
+          
 
             buildTower(-100, 0, 0, Math.PI / 2);
             // buildTower(-100, 0, -50, Math.PI / 2);
@@ -146,14 +143,14 @@
             var texture = new THREE.Texture();
             var mtlLoader = new THREE.MTLLoader();
        
-            mtlLoader.load('https://sonicray.github.io/I4B33/HW3/strts.mtl', function (materials) {
+            mtlLoader.load('https://sonicray.github.io/I4B33/HW3/lamborghini-aventador-irridescent-paint.mtl', function (materials) {
 
                 materials.preload();
 
                 var objLoader = new THREE.OBJLoader();
                 objLoader.setMaterials(materials);
                
-                objLoader.load('https://sonicray.github.io/I4B33/HW3/strts.obj', function (object) {
+                objLoader.load('https://sonicray.github.io/I4B33/HW3/lamborghini-aventador-irridescent-paint.obj', function (object) {
 
                     var theObject = unitize(object, 40);
                     theObject.position.set(0, 0, 0);
@@ -163,14 +160,11 @@
 
                     theObject.traverse(function (mesh) {
                         if (mesh instanceof THREE.Mesh) {
-                            mesh.material.bumpScale = 5;
+                            mesh.material.bumpScale = 20;
                         }
                     });
 
                     scene.add(new THREE.BoxHelper(theObject));
-
-                    //////// MATERIAL ADJUSTMENT for porsche ///////////////
-                    // transparent window: double-side fix
                     object.traverse(
                         function (mesh) {
                             if (mesh instanceof THREE.Mesh) {
@@ -181,7 +175,7 @@
             }, onProgress, onError);
         }
 		     function buildTower(x, y, z, rotateAngle) {
-            // THREE.Loader.Handlers.add(/\.dds$/i, new THREE.DDSLoader());
+           
             var texture = new THREE.Texture();
             var mtlLoader = new THREE.MTLLoader();
             
@@ -200,14 +194,13 @@
                     theObject.rotation.y = rotateAngle;
                     theObject.traverse(function (mesh) {
                         if (mesh instanceof THREE.Mesh) {
-                            mesh.material.bumpScale = 5;
+                            mesh.material.bumpScale = 20;
                         }
                     });
 
                     scene.add(new THREE.BoxHelper(theObject));
                     scene.add(theObject);
-                    //////// MATERIAL ADJUSTMENT for porsche ///////////////
-                    // transparent window: double-side fix
+                   
                     object.traverse(
                         function (mesh) {
                             if (mesh instanceof THREE.Mesh) {
@@ -217,23 +210,7 @@
                 });
             });
         }
-        function buildGround() {
-            var textureLoader = new THREE.TextureLoader();
-
-            var texture = textureLoader.load('https://sonicray.github.io/I4B33/HW3/Color.jpg', function (texture) {
-
-                texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-                texture.offset.set(0, 0);
-                texture.repeat.set(1000, 1000);
-            });
-
-
-            var geometry = new THREE.BoxGeometry(10000, 0.5, 10000);
-            var material = new THREE.MeshBasicMaterial({ map: texture });
-            var ground = new THREE.Mesh(geometry, material);
-
-            return ground;
-        }
+    
         function onWindowResize() {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera2.aspect = window.innerWidth / window.innerHeight;
@@ -243,19 +220,19 @@
         }
         function update(dt) {
             keyboard.update();
-            if (keyboard.pressed("left"))
+            if (keyboard.pressed("A"))
                 if (speed >= 0)
                     angle += 0.02;
                 else
                     angle -= 0.02;
-            if (keyboard.pressed("right"))
+            if (keyboard.pressed("D"))
                 if (speed >= 0)
                     angle -= 0.02;
                 else
                     angle += 0.02;
-            if (keyboard.pressed("up"))
+            if (keyboard.pressed("W"))
                 speed += 1;
-            if (keyboard.pressed("down"))
+            if (keyboard.pressed("S"))
                 speed -= 1;
 
             if (speed >= 100) {
@@ -264,7 +241,7 @@
             if (speed <= -100) {
                 speed = -100;
             }
-            //speed = Math.clamp(speed, 0.0001, 50.0);
+            
             vel = new THREE.Vector3(-speed, 0, 0);
 
             vel.applyAxisAngle(new THREE.Vector3(0, 1, 0), angle);
@@ -293,9 +270,7 @@
             requestAnimationFrame(animate);
             render();
         }
-        function myclamp(x, lo, hi) {
-            return x < lo ? lo : (x > hi ? hi : x);
-        }
+       
 
    
         function render() {
