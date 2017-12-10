@@ -61,7 +61,9 @@
             scene.add(camera);
             scene.add(camera2);
 
-          
+            var ground = buildGround();
+
+            scene.add(ground);
 
             buildTower(-100, 0, 0, Math.PI / 2);
             // buildTower(-100, 0, -50, Math.PI / 2);
@@ -210,7 +212,56 @@
                 });
             });
         }
-    
+		function buildFence(x, y, z, rotateAngle) {
+            var texture = new THREE.Texture();
+            var mtlLoader = new THREE.MTLLoader();
+            
+            mtlLoader.load('https://sonicray.github.io/I4B33/HW3/fence.mtl', function (materials) {
+
+                materials.preload();
+
+                var objLoader = new THREE.OBJLoader();
+                objLoader.setMaterials(materials);
+                objLoader.load('https://sonicray.github.io/I4B33/HW3/fence.obj', function (object) {
+
+                    var theObject = unitize(object, 30);
+                    theObject.position.set(x, y, z);
+                    theObject.rotation.y = rotateAngle;
+                    theObject.traverse(function (mesh) {
+                        if (mesh instanceof THREE.Mesh) {
+                            mesh.material.bumpScale = 0.2;
+                        }
+                    });
+
+                    scene.add(new THREE.BoxHelper(theObject));
+                    scene.add(theObject);
+               
+                    object.traverse(
+                        function (mesh) {
+                            if (mesh instanceof THREE.Mesh) {
+                                mesh.material.side = THREE.DoubleSide;
+                            }
+                        });
+                });
+            });
+        }
+		function buildGround() {
+            var textureLoader = new THREE.TextureLoader();
+
+            var texture = textureLoader.load('./Color.jpg', function (texture) {
+
+                texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+                texture.offset.set(0, 0);
+                texture.repeat.set(1000, 1000);
+            });
+
+
+            var geometry = new THREE.BoxGeometry(10000, 0.5, 10000);
+            var material = new THREE.MeshBasicMaterial({ map: texture });
+            var ground = new THREE.Mesh(geometry, material);
+
+            return ground;
+        }
         function onWindowResize() {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera2.aspect = window.innerWidth / window.innerHeight;
