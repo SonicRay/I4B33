@@ -7,7 +7,7 @@
 </head>
 
 <body>
-
+	
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/84/three.min.js">
     </script>
     <script src="https://threejs.org/examples/js/controls/OrbitControls.js">
@@ -66,9 +66,7 @@
             scene.add(ground);
 
             buildTower(-100, 0, 0, Math.PI / 2);
-            // buildTower(-100, 0, -50, Math.PI / 2);
-            // buildTower(-160, 0, 50, Math.PI / 2);
-            // buildTower(-160, 0, -50, Math.PI / 2);
+       
           
             buildCar();
 
@@ -96,7 +94,7 @@
         }
         function unitize(object, targetSize) {
 
-            // find bounding box of 'object'
+           
             var box3 = new THREE.Box3();
             box3.setFromObject(object);
             var size = new THREE.Vector3();
@@ -107,7 +105,7 @@
             console.log('center: ' + center.x + ', ' + center.y + ', ' + center.z);
             console.log('size: ' + size.x + ', ' + size.y + ', ' + size.z);
 
-            // uniform scaling according to objSize
+            
             var objSize = findMax(size);
             var scaleSet = targetSize / objSize;
 
@@ -131,7 +129,7 @@
       
    
         function buildCar() {
-            // THREE.Loader.Handlers.add(/\.dds$/i, new THREE.DDSLoader());
+            
 
             var onProgress = function (xhr) {
                 if (xhr.lengthComputable) {
