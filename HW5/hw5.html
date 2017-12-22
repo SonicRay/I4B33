@@ -69,19 +69,15 @@
 
         var gridXZ;
         var roomLight, lampLight;
-
+		
+		var wall=buildWall();
+		scene.add(wall);
         var base_url = 'https://sonicray.github.io/I4B33/HW5/';
         init();
         animate();
 
         function buildChair() {
             var mtlLoader = new THREE.MTLLoader();
-            //mtlLoader.setBaseUrl("???")//设置材质路径
-            //mtlLoader.setPath("???")//设置mtl文件所在路径
-            //mtlLoader.load(filename,onSuccess(materials ),onProgress(xhr),onError(error))：mtl文件名、 加载成功后回调处理(参数为生成的材质库)、加载过程中回调处理(xhr对象属性可计算出已完成加载百分比)、失败回调处理
-            //objLoader.setMaterials( materials )//设置obj使用的材质贴图
-            //objLoader.setPath( options.objPath )//设置obj文件所在路径
-            //objLoader.load( filename,onSuccess(object ),onProgress(xhr),onError(error))：obj文件名、 加载成功后回调处理(参数为生成的三维对象)、加载过程中回调处理(xhr对象属性可计算出已完成加载百分比)、失败回调处理。
             var mtlLoader = new THREE.MTLLoader();
             mtlLoader.setPath(base_url);
             mtlLoader.load('chair.mtl', function (materials) {
@@ -97,13 +93,6 @@
                     chair = theObject;
                     theObject.traverse(function (mesh) {
                         if (mesh instanceof THREE.Mesh) {
-                            //mesh.material.side = THREE.DoubleSide;//设置贴图模式为双面贴图
-                            //mesh.material.emissive.r = 0;//设置rgb通道R通道颜色
-                            //mesh.material.emissive.g = 0.01;//设置rgb通道G通道颜色
-                            //mesh.material.emissive.b = 0.05;//设置rgb通道B通道颜色
-                            //mesh.material.transparent = true;//材质允许透明
-                            //child.material.opacity=0;//材质默认透明度                        
-                            //child.material.shading=THREE.SmoothShading;//平滑渲染
                             mesh.material.bumpScale = 20;
                             mesh.material.bumpScale = 20;
                         }
@@ -111,13 +100,6 @@
                     scene.add(theObject);
                     theObject.traverse(function (mesh) {
                         if (mesh instanceof THREE.Mesh) {
-                            //mesh.material.side = THREE.DoubleSide;//设置贴图模式为双面贴图
-                            //mesh.material.emissive.r = 0;//设置rgb通道R通道颜色
-                            //mesh.material.emissive.g = 0.01;//设置rgb通道G通道颜色
-                            //mesh.material.emissive.b = 0.05;//设置rgb通道B通道颜色
-                            //mesh.material.transparent = true;//材质允许透明
-                            //child.material.opacity=0;//材质默认透明度                        
-                            //child.material.shading=THREE.SmoothShading;//平滑渲染
                             mesh.material.bumpScale = 20;
                             mesh.material.bumpScale = 20;
                             mesh.receiveShadow = true;
@@ -141,7 +123,7 @@
             var control = new THREE.Object3D();
 
             var geometry = new THREE.BoxGeometry(1.5, 1.5, 4);
-            var material = new THREE.MeshBasicMaterial({ color: 0x444444 });
+            var material = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
             var cube = new THREE.Mesh(geometry, material);
             cube.receiveShadow = true;
@@ -149,13 +131,13 @@
             control.add(cube);
             cube.position.set(0, 19, 0);
 
-            roomButton = new Button(new THREE.Color(0x12ffff), 'roomButton');
+            roomButton = new Button(new THREE.Color(0xff0000), 'roomButton');
             control.add(roomButton.obj);
             roomButton.obj.position.set(0, 19, -0.7);
             pickables.push(roomButton.obj);
             scene.add(roomButton.obj);
 
-            lampButton = new Button(new THREE.Color(0x12ffff), 'lampButton');
+            lampButton = new Button(new THREE.Color(0xff0000), 'lampButton');
             control.add(lampButton.obj);
             lampButton.obj.position.set(0, 19, 1.3);
             pickables.push(lampButton.obj);
@@ -163,38 +145,32 @@
             return control;
         }
 
-        function buildTable() {
-            var texture = new THREE.Texture();
-            var mtlLoader = new THREE.MTLLoader();
-            mtlLoader.setPath(base_url);
-            mtlLoader.load('table.mtl', function (materials) {
-                materials.preload();
-                var objLoader = new THREE.OBJLoader();
-                objLoader.setMaterials(materials);
-                objLoader.setPath(base_url);
-                objLoader.load('table.obj', function (object) {
-                    var theObject = unitize(object, 35);
-                    theObject.position.set(0, 0, 0);
-                    table = theObject;
-                    console.log(typeof table);
-                    //theObject.rotation.y = rotateAngle;
-                    theObject.traverse(function (mesh) {
-                        if (mesh instanceof THREE.Mesh) {
-                            mesh.material.bumpScale = 20;
-                        }
-                    });
-                    scene.add(theObject);
-                    theObject.traverse(
-                        function (mesh) {
-                            if (mesh instanceof THREE.Mesh) {
-                                mesh.material.bumpScale = 20;
-                                mesh.material.side = THREE.DoubleSide;
-                                mesh.receiveShadow = true;
-                                mesh.castShadow = true;
-                            }
-                        });
-                });
+		
+		function buildWall() {
+            var wall = new THREE.Object3D();
+            var wallGeo = new THREE.BoxGeometry(150, 100);
+
+            var texture = new THREE.TextureLoader().load("https://sonicray.github.io/I4B33/HW5/wall.jpg");
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+
+            var wallMat = new THREE.MeshPhongMaterial({
+                map: texture
             });
+
+            var wall1 = new THREE.Mesh(wallGeo, wallMat);
+            wall1.receiveShadow = true;
+            wall1.rotation.y = Math.PI / 2;
+            wall1.position.set(75, 50, 0);
+
+            var wall2 = new THREE.Mesh(wallGeo, wallMat);
+            wall2.receiveShadow = true;
+            wall2.position.set(0, 50, 75);
+
+            wall.add(wall1);
+            wall.add(wall2);
+
+            return wall;
         }
         function buildLamp() {
             var mtlLoader = new THREE.MTLLoader();
@@ -206,7 +182,7 @@
                 objLoader.setPath(base_url);
                 objLoader.load('lamp.obj', function (object) {
                     var theObject = unitize(object, 10);
-                    theObject.position.set(-14, 16.9, -4.5);
+                    theObject.position.set(-13, 16, -4);
                     theObject.rotation.y = Math.PI / 4;
                     theObject.rotation.x = -Math.PI / 8;
                     lamp = theObject;
@@ -229,9 +205,41 @@
                 });
             });
         }
+		    function buildTable() {
+            var texture = new THREE.Texture();
+            var mtlLoader = new THREE.MTLLoader();
+            mtlLoader.setPath(base_url);
+            mtlLoader.load('table.mtl', function (materials) {
+                materials.preload();
+                var objLoader = new THREE.OBJLoader();
+                objLoader.setMaterials(materials);
+                objLoader.setPath(base_url);
+                objLoader.load('table.obj', function (object) {
+                    var theObject = unitize(object, 35);
+                    theObject.position.set(0, 0, 0);
+                    table = theObject;
+                    console.log(typeof table);
+                    theObject.traverse(function (mesh) {
+                        if (mesh instanceof THREE.Mesh) {
+                            mesh.material.bumpScale = 20;
+                        }
+                    });
+                    scene.add(theObject);
+                    theObject.traverse(
+                        function (mesh) {
+                            if (mesh instanceof THREE.Mesh) {
+                                mesh.material.bumpScale = 20;
+                                mesh.material.side = THREE.DoubleSide;
+                                mesh.receiveShadow = true;
+                                mesh.castShadow = true;
+                            }
+                        });
+                });
+            });
+        }
         function unitize(object, targetSize) {
 
-            // find bounding box of 'object'
+         
             var box3 = new THREE.Box3();
             box3.setFromObject(object);
             var size = new THREE.Vector3();
@@ -239,7 +247,7 @@
             var center = new THREE.Vector3();
             center.addVectors(box3.max, box3.min).multiplyScalar(0.5);
 
-            // uniform scaling according to objSize
+            
             var objSize = Math.max(size.x, size.y, size.z);
             var scaleSet = targetSize / objSize;
 
@@ -269,8 +277,6 @@
             var light = new THREE.AmbientLight(0x888888); // soft white light
             scene.add(light);
             gridXZ = new THREE.GridHelper(200, 20, 'red', 'white');
-            //scene.add(gridXZ);
-            /////////////////////////////////////////////////////////////////////
 
             //var roomLight = new THREE.SpotLight( hex, intensity, distance, angle, penumbra, decay );
             //光色,強度,距離,角度,半影,衰減
@@ -279,44 +285,30 @@
 
             roomLight.angle = Math.PI / 4;
             roomLight.penumbra = 0.25;
-            //roomLight.decay = 2;
-            //roomLight.distance = 200;
             roomLight.castShadow = true;//生成影子
-            ///////////////////////////////////////////////////////////////////
             roomLight.shadow.mapSize.width = 1024;
             roomLight.shadow.mapSize.height = 1024;
             roomLight.shadow.camera.near = 50;//最短距離指定生成陰影的光源的最短距離
             roomLight.shadow.camera.far = 1000;//指定生成陰影最長距離陰影的光源的最長距離。默認值是5000。
             roomLight.shadow.camera.fov = 20;//指定生成陰影角度陰影的光源的角度
             scene.add(roomLight);
-            //////////////////////////////////////////////////
-            //scene.add(new THREE.CameraHelper(roomLight.shadow.camera));
-            //scene.add(new THREE.SpotLightHelper(roomLight));
-            ///////////////////////////////////////////////////////////////////////////////////
             lampLight = new THREE.SpotLight(0xffffff, 1);
             lampLight.position.set(-12.5, 25, -5.5);
             lampLight.angle = Math.PI / 2;
             lampLight.penumbra = 0.25;
             lampLight.distance = 50;
             lampLight.castShadow = true;//生成影子
-            ///////////////////////////////////////////////////////////////////
             lampLight.shadow.mapSize.width = 1024;
             lampLight.shadow.mapSize.height = 1024;
             lampLight.shadow.camera.near = 50;//最短距離指定生成陰影的光源的最短距離
             lampLight.shadow.camera.far = 1000;//指定生成陰影最長距離陰影的光源的最長距離。默認值是5000。
             lampLight.shadow.camera.fov = 20;//指定生成陰影角度陰影的光源的角度
             scene.add(lampLight);
-            //////////////////////////////////////////////////
-            scene.add(new THREE.CameraHelper(lampLight.shadow.camera));
-            scene.add(new THREE.SpotLightHelper(lampLight));
-            ///////////////////////////////////////////////////////////////////////////////////////////////////
             var floor = new THREE.Mesh(new THREE.PlaneGeometry(200, 200, 140, 140), new THREE.MeshLambertMaterial());
             floor.rotation.x = -Math.PI / 2;
             scene.add(floor);
 
             renderer.shadowMap.enabled = true;
-            //renderer.gammaInput = true;//光澤
-            //renderer.gammaOutput = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
             floor.receiveShadow = true;
