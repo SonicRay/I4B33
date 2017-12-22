@@ -70,12 +70,75 @@
         var gridXZ;
         var roomLight, lampLight;
 		
-		var wall=buildWall();
-		scene.add(wall);
+		
         var base_url = 'https://sonicray.github.io/I4B33/HW5/';
         init();
         animate();
+        function buildLamp() {
+            var mtlLoader = new THREE.MTLLoader();
+            mtlLoader.setPath(base_url);
+            mtlLoader.load('lamp.mtl', function (materials) {
+                materials.preload();
+                var objLoader = new THREE.OBJLoader();
+                objLoader.setMaterials(materials);
+                objLoader.setPath(base_url);
+                objLoader.load('lamp.obj', function (object) {
+                    var theObject = unitize(object, 10);
+                    theObject.position.set(-13, 16, -4);
+                    theObject.rotation.y = Math.PI / 4;
+                    theObject.rotation.x = -Math.PI / 8;
+                    lamp = theObject;
+                    theObject.traverse(function (mesh) {
+                        if (mesh instanceof THREE.Mesh) {
+                            mesh.material.bumpScale = 20;
+                        }
+                    });
+                    scene.add(theObject);
 
+                    theObject.traverse(
+                        function (mesh) {
+                            if (mesh instanceof THREE.Mesh) {
+                                mesh.material.bumpScale = 20;
+                                mesh.material.side = THREE.DoubleSide;
+                                mesh.receiveShadow = true;
+                                mesh.castShadow = true;
+                            }
+                        });
+                });
+            });
+        }
+		    function buildTable() {
+            var texture = new THREE.Texture();
+            var mtlLoader = new THREE.MTLLoader();
+            mtlLoader.setPath(base_url);
+            mtlLoader.load('table.mtl', function (materials) {
+                materials.preload();
+                var objLoader = new THREE.OBJLoader();
+                objLoader.setMaterials(materials);
+                objLoader.setPath(base_url);
+                objLoader.load('table.obj', function (object) {
+                    var theObject = unitize(object, 35);
+                    theObject.position.set(0, 0, 0);
+                    table = theObject;
+                    console.log(typeof table);
+                    theObject.traverse(function (mesh) {
+                        if (mesh instanceof THREE.Mesh) {
+                            mesh.material.bumpScale = 20;
+                        }
+                    });
+                    scene.add(theObject);
+                    theObject.traverse(
+                        function (mesh) {
+                            if (mesh instanceof THREE.Mesh) {
+                                mesh.material.bumpScale = 20;
+                                mesh.material.side = THREE.DoubleSide;
+                                mesh.receiveShadow = true;
+                                mesh.castShadow = true;
+                            }
+                        });
+                });
+            });
+        }
         function buildChair() {
             var mtlLoader = new THREE.MTLLoader();
             var mtlLoader = new THREE.MTLLoader();
@@ -161,82 +224,18 @@
             var wall1 = new THREE.Mesh(wallGeo, wallMat);
             wall1.receiveShadow = true;
             wall1.rotation.y = Math.PI / 2;
-            wall1.position.set(75, 50, 0);
+            wall1.position.set(-75, 50, 0);
 
             var wall2 = new THREE.Mesh(wallGeo, wallMat);
             wall2.receiveShadow = true;
-            wall2.position.set(0, 50, 75);
+            wall2.position.set(0, 50, -75);
 
             wall.add(wall1);
             wall.add(wall2);
 
             return wall;
         }
-        function buildLamp() {
-            var mtlLoader = new THREE.MTLLoader();
-            mtlLoader.setPath(base_url);
-            mtlLoader.load('lamp.mtl', function (materials) {
-                materials.preload();
-                var objLoader = new THREE.OBJLoader();
-                objLoader.setMaterials(materials);
-                objLoader.setPath(base_url);
-                objLoader.load('lamp.obj', function (object) {
-                    var theObject = unitize(object, 10);
-                    theObject.position.set(-13, 16, -4);
-                    theObject.rotation.y = Math.PI / 4;
-                    theObject.rotation.x = -Math.PI / 8;
-                    lamp = theObject;
-                    theObject.traverse(function (mesh) {
-                        if (mesh instanceof THREE.Mesh) {
-                            mesh.material.bumpScale = 20;
-                        }
-                    });
-                    scene.add(theObject);
 
-                    theObject.traverse(
-                        function (mesh) {
-                            if (mesh instanceof THREE.Mesh) {
-                                mesh.material.bumpScale = 20;
-                                mesh.material.side = THREE.DoubleSide;
-                                mesh.receiveShadow = true;
-                                mesh.castShadow = true;
-                            }
-                        });
-                });
-            });
-        }
-		    function buildTable() {
-            var texture = new THREE.Texture();
-            var mtlLoader = new THREE.MTLLoader();
-            mtlLoader.setPath(base_url);
-            mtlLoader.load('table.mtl', function (materials) {
-                materials.preload();
-                var objLoader = new THREE.OBJLoader();
-                objLoader.setMaterials(materials);
-                objLoader.setPath(base_url);
-                objLoader.load('table.obj', function (object) {
-                    var theObject = unitize(object, 35);
-                    theObject.position.set(0, 0, 0);
-                    table = theObject;
-                    console.log(typeof table);
-                    theObject.traverse(function (mesh) {
-                        if (mesh instanceof THREE.Mesh) {
-                            mesh.material.bumpScale = 20;
-                        }
-                    });
-                    scene.add(theObject);
-                    theObject.traverse(
-                        function (mesh) {
-                            if (mesh instanceof THREE.Mesh) {
-                                mesh.material.bumpScale = 20;
-                                mesh.material.side = THREE.DoubleSide;
-                                mesh.receiveShadow = true;
-                                mesh.castShadow = true;
-                            }
-                        });
-                });
-            });
-        }
         function unitize(object, targetSize) {
 
          
@@ -268,7 +267,8 @@
             renderer.setClearColor(0x404040);
             document.body.appendChild(renderer.domElement);
             document.addEventListener('mousedown', onDocumentMouseDown, false);
-
+			var wall=buildWall();
+			scene.add(wall);
             camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
             camera.position.set(0, 250, 40);
             scene.add(camera);
@@ -304,7 +304,7 @@
             lampLight.shadow.camera.far = 1000;//指定生成陰影最長距離陰影的光源的最長距離。默認值是5000。
             lampLight.shadow.camera.fov = 20;//指定生成陰影角度陰影的光源的角度
             scene.add(lampLight);
-            var floor = new THREE.Mesh(new THREE.PlaneGeometry(200, 200, 140, 140), new THREE.MeshLambertMaterial());
+            var floor = new THREE.Mesh(new THREE.PlaneGeometry(150, 150, 140, 140), new THREE.MeshLambertMaterial());
             floor.rotation.x = -Math.PI / 2;
             scene.add(floor);
 
